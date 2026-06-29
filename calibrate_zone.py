@@ -78,7 +78,7 @@ def main():
         ty, by = sorted([y0d, y1d])
 
         if rx - lx < 5 or by - ty < 5:
-            info.config(text="⚠️  Слишком маленький прямоугольник, попробуй ещё раз", fg="red")
+            info.config(text="слишком маленький прямоугольник, попробуй ещё раз", fg="red")
             state["start"] = None
             return
 
