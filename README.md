@@ -9,3 +9,7 @@ bash# Кидаешь ВСЕ накладные в raw_invoices/
 python step1_crop_and_label.py
 # открывается окно с кропом → вводишь 7 цифр → Enter → следующая
 # файлы сохраняются как: crops/1616408_invoice001.jpg
+Шаг 2–4 — сплит, обучение, оценка
+bashpython step2_split.py
+python train.py
+python evaluate.py --checkpoint checkpoints/best_model.pt
