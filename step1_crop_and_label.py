@@ -1,15 +1,15 @@
 """
 step1_crop_and_label.py
-───────────────────────
-Кидаешь полные фото накладных в папку raw_invoices/
-Запускаешь этот скрипт — он открывает каждую накладную,
+
+кидаешь полные фото накладных в папку raw_invoices/
+запускаешь этот скрипт — он открывает каждую накладную,
 вырезает зону вагонного номера, показывает тебе кроп,
 ты вводишь 7 цифр → файл сохраняется как crops/1616408_001.jpg
 
-ЗАПУСК:
+запуск:
     python step1_crop_and_label.py
 
-Если кроп выглядит плохо (зона съехала) — поправь ZONE ниже.
+если кроп выглядит плохо (зона съехала) — поправь zone ниже.
 """
 
 import os
@@ -20,14 +20,13 @@ from PIL import Image, ImageDraw, ImageFont
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 
-# ─── НАСТРОЙ ЭТУ ЗОНУ ПОД СВОИ НАКЛАДНЫЕ ────────────────────────────────────
-# Координаты зоны вагонного номера на полном изображении (в пикселях):
+# настрой эту зону под свои накладные
+# координаты зоны вагонного номера на полном изображении (в пикселях):
 # (left, top, right, bottom)
-# Для твоих SMGS накладных — подбери по первой картинке
+# для твоих smgs накладных — подбери по первой картинке
 ZONE = (770, 880, 1130, 1230)
-# ─────────────────────────────────────────────────────────────────────────────
 
-RAW_DIR  = Path("raw_invoices")
+RAW_DIR = Path("raw_invoices")
 CROP_DIR = Path("crops")
 CROP_DIR.mkdir(exist_ok=True)
 
@@ -37,18 +36,17 @@ IMG_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff"}
 def get_image_files():
     files = sorted([f for f in RAW_DIR.iterdir() if f.suffix.lower() in IMG_EXTS])
     if not files:
-        print(f"❌  Нет изображений в папке {RAW_DIR}/")
-        print(f"    Положи туда фото накладных и запусти снова.")
+        print(f"нет изображений в папке {RAW_DIR}/")
+        print("положи туда фото накладных и запусти снова.")
         sys.exit(1)
     return files
 
 
 def already_labelled() -> set:
-    """Имена исходных файлов, которые уже обработаны."""
+    """имена исходных файлов, которые уже обработаны."""
     labelled = set()
     for f in CROP_DIR.iterdir():
         if "_" in f.stem:
-            # формат: 1616408_invoice001.jpg → оригинал invoice001
             original_stem = "_".join(f.stem.split("_")[1:])
             labelled.add(original_stem)
     return labelled
@@ -56,27 +54,25 @@ def already_labelled() -> set:
 
 def show_and_label(img_path: Path, crop: Image.Image, index: int, total: int) -> str | None:
     """
-    Показывает кроп в окне и просит ввести 7 цифр.
-    Возвращает строку из 7 цифр или None (пропуск).
+    показывает кроп в окне и просит ввести 7 цифр.
+    возвращает строку из 7 цифр или none (пропуск).
     """
-    # Увеличиваем кроп для удобного просмотра
     w, h = crop.size
     scale = max(1, 400 // h)
     preview = crop.resize((w * scale, h * scale), Image.LANCZOS)
 
-    # Tkinter окно
     root = tk.Tk()
     root.title(f"[{index}/{total}] {img_path.name}")
     root.lift()
     root.focus_force()
 
-    # Показываем картинку
     from PIL import ImageTk
+
     tk_img = ImageTk.PhotoImage(preview)
     lbl = tk.Label(root, image=tk_img)
     lbl.pack(padx=10, pady=10)
 
-    info = tk.Label(root, text=f"Файл: {img_path.name}", font=("Arial", 10))
+    info = tk.Label(root, text=f"файл: {img_path.name}", font=("Arial", 10))
     info.pack()
 
     result = {"value": None}
@@ -87,7 +83,7 @@ def show_and_label(img_path: Path, crop: Image.Image, index: int, total: int) ->
             result["value"] = val
             root.destroy()
         else:
-            tk.messagebox.showerror("Ошибка", "Введи ровно 7 цифр (0–9)")
+            tk.messagebox.showerror("ошибка", "введи ровно 7 цифр (0-9)")
 
     def on_skip():
         root.destroy()
@@ -95,7 +91,7 @@ def show_and_label(img_path: Path, crop: Image.Image, index: int, total: int) ->
     frame = tk.Frame(root)
     frame.pack(pady=5)
 
-    tk.Label(frame, text="Вагонный номер (7 цифр):", font=("Arial", 12)).pack()
+    tk.Label(frame, text="вагонный номер (7 цифр):", font=("Arial", 12)).pack()
     entry = tk.Entry(frame, font=("Arial", 18), width=10, justify="center")
     entry.pack(pady=4)
     entry.focus()
@@ -103,10 +99,24 @@ def show_and_label(img_path: Path, crop: Image.Image, index: int, total: int) ->
 
     btn_frame = tk.Frame(root)
     btn_frame.pack(pady=8)
-    tk.Button(btn_frame, text="✓ Сохранить", command=on_submit,
-              bg="#4CAF50", fg="white", font=("Arial", 11), width=12).pack(side="left", padx=5)
-    tk.Button(btn_frame, text="Пропустить", command=on_skip,
-              font=("Arial", 11), width=12).pack(side="left", padx=5)
+
+    tk.Button(
+        btn_frame,
+        text="сохранить",
+        command=on_submit,
+        bg="#4CAF50",
+        fg="white",
+        font=("Arial", 11),
+        width=12,
+    ).pack(side="left", padx=5)
+
+    tk.Button(
+        btn_frame,
+        text="пропустить",
+        command=on_skip,
+        font=("Arial", 11),
+        width=12,
+    ).pack(side="left", padx=5)
 
     root.mainloop()
     return result["value"]
@@ -117,12 +127,13 @@ def main():
     already = already_labelled()
 
     pending = [f for f in files if f.stem not in already]
-    print(f"\n📂  Найдено накладных : {len(files)}")
-    print(f"✅  Уже размечено     : {len(already)}")
-    print(f"🔲  Осталось разметить: {len(pending)}\n")
+
+    print(f"\nнайдено накладных : {len(files)}")
+    print(f"уже размечено     : {len(already)}")
+    print(f"осталось разметить: {len(pending)}\n")
 
     if not pending:
-        print("Всё уже размечено! Иди к step2.")
+        print("всё уже размечено. переходи к step2.")
         return
 
     x1, y1, x2, y2 = ZONE
@@ -132,29 +143,29 @@ def main():
         try:
             img = Image.open(fpath)
         except Exception as e:
-            print(f"  ❌ Не могу открыть {fpath.name}: {e}")
+            print(f"не могу открыть {fpath.name}: {e}")
             continue
 
-        # Автомасштаб: если изображение гораздо больше/меньше ожидаемого
         iw, ih = img.size
-        print(f"  [{i}/{len(pending)}] {fpath.name}  ({iw}×{ih}px)")
+        print(f"[{i}/{len(pending)}] {fpath.name} ({iw}x{ih}px)")
 
-        crop = img.crop((x1, y1, x2, y2)).convert("L")  # grayscale
+        crop = img.crop((x1, y1, x2, y2)).convert("L")
 
         label = show_and_label(fpath, crop, i, len(pending))
 
         if label is None:
-            print(f"    ↷ Пропущено")
+            print("пропущено")
             continue
 
         out_name = f"{label}_{fpath.stem}.jpg"
         out_path = CROP_DIR / out_name
         crop.save(out_path, "JPEG", quality=95)
-        print(f"    ✓ Сохранён → crops/{out_name}")
+
+        print(f"сохранён -> crops/{out_name}")
         saved += 1
 
-    print(f"\n✓ Готово. Сохранено {saved} кропов в crops/")
-    print("  Следующий шаг: python step2_split.py")
+    print(f"\nготово. сохранено {saved} кропов в crops/")
+    print("следующий шаг: python step2_split.py")
 
 
 if __name__ == "__main__":
